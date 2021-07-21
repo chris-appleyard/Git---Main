@@ -95,11 +95,14 @@ fi
 
 if test -s $panic_file; then
 
-        # If the file exists and is not empty, encrypt the panic file and send over email with PGP encryption.
-        sudo -u $user gpg --pinentry-mode loopback --passphrase-file $home_dir/gpg.pass --encrypt --sign --armor -r $Email_Address $panic_file
-        rm -rf $panic_file
-        cat $home_dir/nextcloud_backup.panic.asc | sudo -u $user mail -s "Nextcloud Backup: PANIC" $Email_Address
-        rm -rf $home_dir/nextcloud_backup.panic.asc
+        if grep -q "WARNING: Empty object name on S3 found, ignoring." $panic_file; then
+                rm -rf $panic_file
+        else
+                # If the file exists and is not empty, encrypt the panic file and send over email with PGP encryption.
+                sudo -u $user gpg --pinentry-mode loopback --passphrase-file $home_dir/gpg.pass --encrypt --sign --armor -r $Email_Address $panic_file
+                rm -rf $panic_file
+                cat $home_dir/nextcloud_backup.panic.asc | sudo -u $user mail -s "Nextcloud Backup: PANIC" $Email_Address
+                rm -rf $home_dir/nextcloud_backup.panic.asc
 else
 
     # If the file is empty, delete it.
