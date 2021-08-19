@@ -93,16 +93,14 @@ else
         sudo s3cmd sync $data_dir s3://$s3_bucket/Data_Backups/ --human-readable-sizes --ssl --config=$home_dir/.s3cfg
 fi
 
-if test -s $panic_file; then
 
-        if grep -q "WARNING: Empty object name on S3 found, ignoring." $panic_file; then
-                rm -rf $panic_file
-        else
-                # If the file exists and is not empty, encrypt the panic file and send over email with PGP encryption.
-                sudo -u $user gpg --pinentry-mode loopback --passphrase-file $home_dir/gpg.pass --encrypt --sign --armor -r $Email_Address $panic_file
-                rm -rf $panic_file
-                cat $home_dir/nextcloud_backup.panic.asc | sudo -u $user mail -s "Nextcloud Backup: PANIC" $Email_Address
-                rm -rf $home_dir/nextcloud_backup.panic.asc
+if test -s $panic_file; then
+        sed -i '/WARNING: Empty object name on S3 found, ignoring./d' $panic_file #Remove the pointless warning.
+        # If the file exists and is not empty, encrypt the panic file and send over email with PGP encryption.
+        sudo -u $user gpg --pinentry-mode loopback --passphrase-file $home_dir/gpg.pass --encrypt --sign --armor -r $Email_Address $panic_file
+        rm -rf $panic_file
+        cat $home_dir/nextcloud_backup.panic.asc | sudo -u $user mail -s "Nextcloud Backup: PANIC" $Email_Address
+        rm -rf $home_dir/nextcloud_backup.panic.asc
 else
 
     # If the file is empty, delete it.
